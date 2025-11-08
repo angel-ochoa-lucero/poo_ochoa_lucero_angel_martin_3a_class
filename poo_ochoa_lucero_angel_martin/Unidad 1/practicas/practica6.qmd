@@ -1,0 +1,124 @@
+---
+title: "Patrones de Diseño: Factory y Observer"
+author: "Ochoa Lucero Angel Martin"
+format: docx v  
+---
+
+## Introducción
+En esta práctica se muestran dos patrones de diseño muy utilizados en el desarrollo de software:  
+1. **Factory**: para centralizar la creación de objetos.  
+2. **Observer**: para permitir que múltiples objetos reaccionen a un evento.  
+
+El caso de simulación elegido es un **sistema de notificaciones en una tienda online**.
+
+---
+
+## Ejemplo: Patrón Factory
+
+El patrón **Factory** permite crear objetos sin que el cliente se preocupe por los detalles de su construcción.  
+En este caso, se crean diferentes tipos de **notificaciones**: Email, SMS y Push.
+
+```{python}
+class Notificacion:
+    def enviar(self, mensaje):
+        raise NotImplementedError("Este método debe ser implementado por las subclases.")
+
+
+class NotificacionEmail(Notificacion):
+    def enviar(self, mensaje):
+        print(f"[EMAIL] Enviando correo: {mensaje}")
+
+
+class NotificacionSMS(Notificacion):
+    def enviar(self, mensaje):
+        print(f"[SMS] Enviando mensaje de texto: {mensaje}")
+
+
+class NotificacionPush(Notificacion):
+    def enviar(self, mensaje):
+        print(f"[PUSH] Enviando notificación push: {mensaje}")
+
+
+class NotificacionFactory:
+    @staticmethod
+    def crear_notificacion(tipo):
+        if tipo == "email":
+            return NotificacionEmail()
+        elif tipo == "sms":
+            return NotificacionSMS()
+        elif tipo == "push":
+            return NotificacionPush()
+        else:
+            raise ValueError("Tipo de notificación no soportado.")
+ ```
+
+## Ejemplo de uso
+```{python}
+fabrica = NotificacionFactory()
+notificacion = fabrica.crear_notificacion("email")
+notificacion.enviar("Gracias por tu compra!")
+
+notificacion2 = fabrica.crear_notificacion("sms")
+notificacion2.enviar("Tu pedido ha sido enviado.")
+```
+
+# Ejemplo: Patrón Observer
+
+El patrón Observer permite que varios objetos se "suscriban" a un sujeto y reciban notificaciones cuando algo cambia.
+En este caso, un carrito de compras notifica a distintos observadores (Inventario, Finanzas y Cliente) cuando se realiza una compra.
+```{python}
+class Sujeto:
+    def __init__(self):
+        self._observadores = []
+
+    def agregar(self, observador):
+        self._observadores.append(observador)
+
+    def eliminar(self, observador):
+        self._observadores.remove(observador)
+
+    def notificar(self, mensaje):
+        for observador in self._observadores:
+            observador.actualizar(mensaje)
+
+
+class Observador:
+    def actualizar(self, mensaje):
+        raise NotImplementedError("Este método debe ser implementado por las subclases.")
+
+
+class Inventario(Observador):
+    def actualizar(self, mensaje):
+        print(f"[INVENTARIO] Actualizando stock: {mensaje}")
+
+
+class Finanzas(Observador):
+    def actualizar(self, mensaje):
+        print(f"[FINANZAS] Registrando venta: {mensaje}")
+
+
+class Cliente(Observador):
+    def actualizar(self, mensaje):
+        print(f"[CLIENTE] Recibiendo confirmación: {mensaje}")
+```
+
+## Ejemplo de uso
+```{python}
+tienda = Sujeto()
+
+inventario = Inventario()
+finanzas = Finanzas()
+cliente = Cliente()
+
+tienda.agregar(inventario)
+tienda.agregar(finanzas)
+tienda.agregar(cliente)
+
+# Cuando ocurre una venta, se notifica a todos los observadores
+tienda.notificar("Compra realizada del producto X")
+```
+
+## Conclusion
+Factory: facilita la creación de objetos sin acoplar el código a clases concretas.
+
+Observer: permite una comunicación flexible entre objetos, útil en sistemas donde varios módulos deben reaccionar a un mismo evento.
